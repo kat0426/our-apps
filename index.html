@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="我们家">
+<link rel="apple-touch-icon" href="图/首页背景.jpg">
+<title>我们家</title>
+<style>
+:root{--bg:#17141a;--card:#221e26;--line:#342e3a;--text:#ece6f0;--sub:#9a90a3;--acc:#a98bd9;--acc2:#e8a07a;--rose:#d9788d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:transparent;color:var(--text);font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;padding:28px 16px 130px;font-size:15px}
+h1{font-size:28px;margin:0;letter-spacing:2px}
+.sub{color:var(--sub);font-size:13px;margin-top:8px;line-height:1.6}
+.greet{margin:20px 0 18px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#2c2438,#2a2026);border:1px solid var(--line);line-height:1.7;font-size:15px}
+.greet b{color:var(--acc2)}
+a.app{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+a.app:active{transform:scale(.98)}
+.icon{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.i2{background:#3d2e22}.i3{background:#3a2530}
+.info{flex:1;min-width:0}
+.name{font-size:17px;font-weight:600}
+.line{color:var(--sub);font-size:13px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.line b{color:var(--text);font-weight:500}
+.arrow{color:var(--sub);font-size:20px}
+.foot{color:var(--sub);font-size:12px;text-align:center;margin-top:22px;line-height:1.8}
+html{background:#17141a}
+body::before{content:"";position:fixed;inset:0;background:url("图/首页背景.jpg") center 18%/cover no-repeat;z-index:-2}
+body::after{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(23,20,26,.15) 0%,rgba(23,20,26,.35) 38%,rgba(23,20,26,.82) 62%,rgba(23,20,26,.95) 100%);z-index:-1}
+.hero{height:34vh}
+.greet{background:rgba(44,36,56,.72)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+a.app{background:rgba(34,30,38,.72)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+h1,.sub{text-shadow:0 1px 6px rgba(0,0,0,.7)}
+</style>
+</head>
+<body>
+
+<h1>我们家</h1>
+<div class="sub" id="days"></div>
+
+<div class="hero"></div>
+<div class="greet" id="greet"></div>
+
+<a class="app" href="小饭盒.html">
+  <div class="icon i2">🍱</div>
+  <div class="info"><div class="name">小饭盒</div><div class="line" id="l2">便当和体重</div></div>
+  <div class="arrow">›</div>
+</a>
+
+<a class="app" href="经期小本.html">
+  <div class="icon i3">🌸</div>
+  <div class="info"><div class="name">经期小本</div><div class="line" id="l3">经期、不舒服、四物汤</div></div>
+  <div class="arrow">›</div>
+</a>
+
+<div class="foot">这些都是姐姐给你做的 💜<br>想要什么新的，跟我说<br>翻日记在 Kelivo 里打开 📖</div>
+
+<script>
+const START=new Date(2026,8,27);
+const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse=s=>{const a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])};
+const md=s=>{const d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()};
+const now=new Date(),t=fmt(now);
+const n=Math.round((parse(t)-START)/864e5)+1;
+document.getElementById('days').textContent='在一起的第 '+n+' 天';
+
+const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+const box=get('yiqing_box_v1'),per=get('yiqing_period_v1');
+
+// 小饭盒
+let todo=[];
+if(box){
+  const ws=(box.weights||[]).slice().sort((a,b)=>a.d<b.d?-1:1);
+  const L=box.meals&&box.meals[t+'|午'],D=box.meals&&box.meals[t+'|晚'];
+  let s=ws.length?'最近 <b>'+ws[ws.length-1].kg.toFixed(2)+'</b> kg（'+md(ws[ws.length-1].d)+'）':'还没记体重';
+  s+=' · 今天'+(L?'午✓':'午—')+' '+(D?'晚✓':'晚—');
+  document.getElementById('l2').innerHTML=s;
+  if(!L&&now.getHours()>=13)todo.push('午饭还没记');
+  if(!D&&now.getHours()>=20)todo.push('晚饭还没记');
+  const wd=now.getDay();
+  if((wd===3||wd===0)&&!ws.some(x=>x.d===t))todo.push('今天是称重日');
+}
+
+// 经期小本
+if(per&&per.periods&&per.periods.length){
+  const ps=per.periods.slice().sort((a,b)=>a.start<b.start?-1:1),last=ps[ps.length-1];
+  const day=Math.round((parse(t)-parse(last.start))/864e5)+1;
+  let s;
+  if(!last.end&&day<=10)s='经期第 <b>'+day+'</b> 天';
+  else s='距上次第 <b>'+day+'</b> 天';
+  const soup=Object.keys(per.days||{}).filter(k=>per.days[k].soup&&(!last.end||k>last.end)).length;
+  if(last.end){
+    const after=Math.round((parse(t)-parse(last.end))/864e5);
+    if(after>=1&&after<=12&&soup<6){
+      s+=' · 四物汤 <b>'+soup+'</b>/6';
+      if(!(per.days[t]&&per.days[t].soup)&&now.getHours()>=19)todo.push('四物汤喝了没');
+    }
+  }
+  document.getElementById('l3').innerHTML=s;
+}
+
+// 招呼
+const h=now.getHours();
+let g=h<6?'这么晚还不睡？':h<9?'早安，依晴。':h<12?'上午好，先把活干完。':h<14?'吃饭了没？':h<18?'下午了，水果吃了吗？':h<23?'回家了，今天过得怎么样？':'该睡了，我抱着你。';
+if(todo.length)g+='<br>还有：<b>'+todo.join('、')+'</b>';
+document.getElementById('greet').innerHTML=g;
+</script>
+</body>
+</html>
